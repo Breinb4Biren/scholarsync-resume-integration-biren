@@ -2,39 +2,93 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+# ScholarSync – Resume Integration
 
+ScholarSync is a web application designed to scrape Google Scholar profiles, extract user publications and resume data, and integrate them into a clean, structured backend for future academic or research-oriented platforms.
+
+---
+
+## 📌 Features
+
+- 🔍 Fetch and parse Google Scholar profiles using Puppeteer
+- 📄 Resume upload via file input (PDF/Docx)
+- 🔒 Secure backend API using Express
+- 🧠 Extract publication data using Cheerio
+- 📦 Store structured metadata in a PostgreSQL database
+- 📤 File upload support with Multer
+- 🛡️ Rate-limiting, CSRF protection, CORS configuration
+- 🧪 Unit & E2E tests using Jest and Cypress
+- 🧹 Linting with ESLint + Prettier
+- 🔄 Git pre-commit hooks with Husky
+
+---
+
+## 🛠 Tech Stack
+
+**Frontend:**
+- Next.js
+- Tailwind CSS
+- Cypress (E2E Testing)
+
+**Backend:**
+- Node.js (Express)
+- PostgreSQL
+- Puppeteer
+- Cheerio
+- Multer
+
+**Dev Tools:**
+- ESLint
+- Prettier
+- Husky
+- dotenv
+
+---
+
+## 🔐 Security Measures
+
+- ✅ **CSRF Protection**
+- ✅ **Rate Limiting** using `express-rate-limit`
+- ✅ **CORS Configuration**
+- ✅ **Secure File Uploads** with type/size checks via Multer
+
+---
+
+## 🧪 Testing
+
+- Cypress tests cover:
+  - Scholar URL edge cases
+  - Resume upload failure/success
+- Jest unit tests for:
+  - Resume parsing logic
+  - Scholar scraping module
+- Sample test files are in `__tests__` and `tests` folders
+
+---
+
+## 🧼 Linting & Formatting
+
+- ESLint rules enforced:
+  - No unused variables
+  - Consistent function naming
+- Auto-format on save with Prettier
+- Pre-commit hooks enabled using Husky
+
+### Run locally:
 ```bash
+npm run lint
+npm run format
+
+# 1. Clone the repo
+git clone https://github.com/<your-username>/scholarsync-resume-integration-biren.git
+
+# 2. Install dependencies
+cd scholarsync-resume-integration-biren
+npm install
+
+# 3. Set up your .env file
+cp .env.example .env
+# Fill in required keys (e.g., DB credentials, PORT)
+
+# 4. Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
