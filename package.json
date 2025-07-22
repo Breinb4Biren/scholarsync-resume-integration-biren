@@ -17,6 +17,7 @@
     "express-rate-limit": "^8.0.1",
     "formidable": "^3.5.4",
     "google-search-results-nodejs": "^2.1.0",
+    "mammoth": "^1.9.1",
     "next": "15.4.2",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^3.11.174",

@@ -2,6 +2,7 @@ import { extractLinksFromPDF } from '@/lib/extractLinks';
 import formidable from 'formidable';
 import fs from 'fs';
 import pdfParse from 'pdf-parse';
+import mammoth from 'mammoth';
 
 export const config = {
   api: {
@@ -30,28 +31,37 @@ export default async function handler(req, res) {
 
     try {
       const filePath = file.filepath || file.path;
-      const dataBuffer = fs.readFileSync(filePath);
-      const pdfData = await pdfParse(dataBuffer);
-      const hyperlinks = await extractLinksFromPDF(filePath);
-      console.log("🔗 Extracted Links from Annotations:", hyperlinks);
+      const fileExt = file.originalFilename?.split('.').pop().toLowerCase();
 
-      //Clean and normalize the PDF text
-      const cleanedText = pdfData.text
+      let rawText = '';
+      let hyperlinks = [];
+
+      if (fileExt === 'pdf') {
+        const dataBuffer = fs.readFileSync(filePath);
+        const pdfData = await pdfParse(dataBuffer);
+        rawText = pdfData.text;
+        hyperlinks = await extractLinksFromPDF(filePath);
+      } else if (fileExt === 'docx') {
+        const result = await mammoth.extractRawText({ path: filePath });
+        rawText = result.value;
+      } else {
+        return res.status(400).json({ error: 'Unsupported file format. Only PDF and DOCX are allowed.' });
+      }
+
+      const cleanedText = rawText
         .replace(/[^\x20-\x7E\n]/g, '')
         .split('\n')
         .map(line => line.trim())
         .filter(line => line.length > 0)
         .join('\n');
-        const urlRegex = /https?:\/\/[^\s)]+/g;
-        const links = cleanedText.match(urlRegex) || [];
-        console.log("🧪 CleanedText Preview:\n", cleanedText.slice(0, 800));
 
-      // Pattern matches
+      const urlRegex = /https?:\/\/[^\s)]+/g;
+      const links = cleanedText.match(urlRegex) || [];
+
       const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
       const phoneMatch = cleanedText.match(/(\+91[-\s]?|0)?\d{10}/);
       const nameMatch = cleanedText.match(/^([A-Z][a-z]+)\s([A-Z][a-z]+)/);
 
-      // Fallback for name from email
       let name = nameMatch ? nameMatch[0] : '';
       if (!name && emailMatch) {
         name = emailMatch[0].split('@')[0].replace(/[._-]/g, ' ');
@@ -61,26 +71,22 @@ export default async function handler(req, res) {
           .join(' ');
       }
 
-      // Section extractor helper
       function extractSection(text, startKeyword, endKeyword) {
         const regex = new RegExp(`${startKeyword}[\\s\\S]*?(?=${endKeyword}|$)`, 'i');
         const match = text.match(regex);
         return match ? match[0].trim().split('\n').slice(1) : [];
       }
 
-      // Extract all major sections
       const education = extractSection(cleanedText, 'Education', 'Experience|Projects|Skills|Achievements|Technical Skills|Positions');
       const experience = extractSection(cleanedText, 'Experience', 'Projects|Skills|Achievements|Technical Skills|Positions');
       const projects = extractSection(cleanedText, 'Projects|Personal Projects', 'Technical Skills|Skills|Achievements|Positions');
       const skills = extractSection(cleanedText, 'Technical Skills and Interests|Skills', 'Positions of Responsibility|Achievements|$');
       const achievements = extractSection(cleanedText, 'Achievements', 'Positions of Responsibility|$');
       const positions = extractSection(cleanedText, 'Positions of Responsibility', 'Achievements|$');
-      // Extract socials
+
       const githubMatch = cleanedText.match(/https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9-._]+/);
       const linkedinMatch = cleanedText.match(/https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-_%]+/);
 
-
-      //  Build structured object
       const rawParsed = {
         name,
         email: emailMatch ? emailMatch[0] : '',
@@ -93,10 +99,9 @@ export default async function handler(req, res) {
         skills,
         achievements,
         positions,
-        links : [...links, ...hyperlinks],
+        links: [...links, ...hyperlinks],
       };
 
-      //Remove empty values (clean object)
       const parsed = Object.fromEntries(
         Object.entries(rawParsed).filter(([_, val]) =>
           Array.isArray(val) ? val.length > 0 : !!val
@@ -109,8 +114,8 @@ export default async function handler(req, res) {
       });
 
     } catch (parseErr) {
-      console.error('PDF parsing error:', parseErr);
-      res.status(500).json({ error: 'Failed to parse PDF' });
+      console.error('Resume parsing error:', parseErr);
+      res.status(500).json({ error: 'Failed to parse resume file' });
     }
   });
 }
