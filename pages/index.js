@@ -1,4 +1,3 @@
-import React from 'react';
 import ResumeUploader from '@/components/ResumeUploader';
 import ScholarInput from '../components/ScholarInput';
 import { useDispatch, useSelector } from 'react-redux';
