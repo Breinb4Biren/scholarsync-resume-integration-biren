@@ -10,7 +10,7 @@ ScholarSync is a web application designed to scrape Google Scholar profiles, ext
 
 ## 📌 Features
 
-- 🔍 Fetch and parse Google Scholar profiles using Puppeteer
+- 🔍 Fetch and parse Google Scholar profiles using cheerio and puppeter.
 - 📄 Resume upload via file input (PDF/Docx)
 - 🔒 Secure backend API using Express
 - 🧠 Extract publication data using Cheerio
