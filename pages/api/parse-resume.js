@@ -1,9 +1,11 @@
+// pages/api/parse-resume.js
 import { extractLinksFromPDF } from '@/lib/extractLinks';
 import { extractLinksFromDOCX } from '@/lib/extractLinksFromDOCX';
 
 import formidable from 'formidable';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
+import fs from 'fs';
 
 export const config = {
   api: {
@@ -16,7 +18,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const form = formidable({ multiples: false, keepExtensions: true });
+  const form = formidable({
+    multiples: false,
+    keepExtensions: true,
+    uploadDir: '/tmp',
+    filename: (name, ext, part) => `${Date.now()}-${part.originalFilename}`,
+    });
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
@@ -26,21 +33,27 @@ export default async function handler(req, res) {
 
     const file = Array.isArray(files.resume) ? files.resume[0] : files.resume;
 
-    if (!file) {
+    if (!file || !file.filepath) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    try {
-      const buffer = await file.toBuffer?.(); // Read file directly into memory
-      const fileExt = file.originalFilename?.split('.').pop().toLowerCase();
+    console.log('Uploaded file path:', file.filepath);
 
+    try {
+      // Read file into buffer
+      const buffer = fs.readFileSync(file.filepath);
+      fs.unlink(file.filepath, (err) => {
+        if (err) console.warn('Failed to clean up temp file:', err);
+      });
+
+      const fileExt = file.originalFilename?.split('.').pop().toLowerCase();
       let rawText = '';
       let hyperlinks = [];
 
       if (fileExt === 'pdf') {
         const pdfData = await pdfParse(buffer);
         rawText = pdfData.text;
-        hyperlinks = await extractLinksFromPDF(buffer); // <-- UPDATE extractLinksFromPDF to support buffers
+        hyperlinks = await extractLinksFromPDF(buffer);
       } else if (fileExt === 'docx') {
         const result = await mammoth.extractRawText({ buffer });
         rawText = result.value;
