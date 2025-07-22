@@ -1,6 +1,7 @@
 import { extractLinksFromPDF } from '@/lib/extractLinks';
+import { extractLinksFromDOCX } from '@/lib/extractLinksFromDOCX';
+
 import formidable from 'formidable';
-import fs from 'fs';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const form = formidable({ multiples: false });
+  const form = formidable({ multiples: false, keepExtensions: true });
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
@@ -30,20 +31,20 @@ export default async function handler(req, res) {
     }
 
     try {
-      const filePath = file.filepath || file.path;
+      const buffer = await file.toBuffer?.(); // Read file directly into memory
       const fileExt = file.originalFilename?.split('.').pop().toLowerCase();
 
       let rawText = '';
       let hyperlinks = [];
 
       if (fileExt === 'pdf') {
-        const dataBuffer = fs.readFileSync(filePath);
-        const pdfData = await pdfParse(dataBuffer);
+        const pdfData = await pdfParse(buffer);
         rawText = pdfData.text;
-        hyperlinks = await extractLinksFromPDF(filePath);
+        hyperlinks = await extractLinksFromPDF(buffer); // <-- UPDATE extractLinksFromPDF to support buffers
       } else if (fileExt === 'docx') {
-        const result = await mammoth.extractRawText({ path: filePath });
+        const result = await mammoth.extractRawText({ buffer });
         rawText = result.value;
+        hyperlinks = await extractLinksFromDOCX(buffer);
       } else {
         return res.status(400).json({ error: 'Unsupported file format. Only PDF and DOCX are allowed.' });
       }
