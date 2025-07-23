@@ -21,7 +21,7 @@ export default function ScholarInput() {
     dispatch(startFetch());
 
     try {
-      const res = await fetch('/api/fetch-scholar', {
+     const res = await fetch('https://scholarsync-resume-integration-biren-production.up.railway.app/api/fetch-scholar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profileUrl: url }),
