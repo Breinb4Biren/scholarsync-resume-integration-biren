@@ -102,7 +102,6 @@ export default async function handler(req, res) {
         status: 404
       });
     }
-    await page.screenshot({ path: 'scholar_debug.png', fullPage: true }); // to capture what the browser sees
 
     console.log('🌀 Scrolling page to load all publications...');
     await autoScroll(page);
